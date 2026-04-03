@@ -45,6 +45,8 @@ ifeq "$(wildcard config.mk)" ""
 endif
 include config.mk
 
+MINGW_AR ?= $(shell $(MINGW_CXX) -print-prog-name=ar)
+
 COMMON_CXXFLAGS += \
 	-MMD -Wall \
 	-DUNICODE \
@@ -121,6 +123,7 @@ install-debugserver : all
 install-lib : all
 	mkdir -p $(PREFIX)/lib
 	install -m 644 -p build/winpty.lib $(PREFIX)/lib
+	install -m 644 -p build/libwinpty.a $(PREFIX)/lib
 
 .PHONY : install-doc
 install-doc :

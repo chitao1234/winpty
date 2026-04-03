@@ -31,8 +31,12 @@
  * calling convention.  (64-bit Windows has only a single calling convention.)
  * When compiled with __declspec(dllexport), with either MinGW or MSVC, the
  * winpty functions are unadorned--no underscore prefix or '@nn' suffix--so
- * GetProcAddress can be used easily. */
-#ifdef COMPILING_WINPTY_DLL
+ * GetProcAddress can be used easily.
+ *
+ * Define WINPTY_STATIC when linking against the static libwinpty archive. */
+#if defined(WINPTY_STATIC)
+#define WINPTY_API
+#elif defined(COMPILING_WINPTY_DLL)
 #define WINPTY_API __declspec(dllexport)
 #else
 #define WINPTY_API __declspec(dllimport)

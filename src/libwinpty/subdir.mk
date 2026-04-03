@@ -18,29 +18,41 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-ALL_TARGETS += build/winpty.dll
+ALL_TARGETS += build/winpty.dll build/libwinpty.a
 
-$(eval $(call def_mingw_target,libwinpty,-DCOMPILING_WINPTY_DLL))
+$(eval $(call def_mingw_target,libwinpty-dll,-DCOMPILING_WINPTY_DLL))
+$(eval $(call def_mingw_target,libwinpty-static,-DWINPTY_STATIC))
 
-LIBWINPTY_OBJECTS = \
-	build/libwinpty/libwinpty/AgentLocation.o \
-	build/libwinpty/libwinpty/winpty.o \
-	build/libwinpty/shared/BackgroundDesktop.o \
-	build/libwinpty/shared/Buffer.o \
-	build/libwinpty/shared/DebugClient.o \
-	build/libwinpty/shared/GenRandom.o \
-	build/libwinpty/shared/OwnedHandle.o \
-	build/libwinpty/shared/StringUtil.o \
-	build/libwinpty/shared/WindowsSecurity.o \
-	build/libwinpty/shared/WindowsVersion.o \
-	build/libwinpty/shared/WinptyAssert.o \
-	build/libwinpty/shared/WinptyException.o \
-	build/libwinpty/shared/WinptyVersion.o
+LIBWINPTY_OBJECT_STEMS = \
+	libwinpty/AgentLocation \
+	libwinpty/winpty \
+	shared/BackgroundDesktop \
+	shared/Buffer \
+	shared/DebugClient \
+	shared/GenRandom \
+	shared/OwnedHandle \
+	shared/StringUtil \
+	shared/WindowsSecurity \
+	shared/WindowsVersion \
+	shared/WinptyAssert \
+	shared/WinptyException \
+	shared/WinptyVersion
 
-build/libwinpty/shared/WinptyVersion.o : build/gen/GenVersion.h
+LIBWINPTY_DLL_OBJECTS = \
+	$(addprefix build/libwinpty-dll/,$(addsuffix .o,$(LIBWINPTY_OBJECT_STEMS)))
 
-build/winpty.dll : $(LIBWINPTY_OBJECTS)
+LIBWINPTY_STATIC_OBJECTS = \
+	$(addprefix build/libwinpty-static/,$(addsuffix .o,$(LIBWINPTY_OBJECT_STEMS)))
+
+build/libwinpty-dll/shared/WinptyVersion.o \
+build/libwinpty-static/shared/WinptyVersion.o : build/gen/GenVersion.h
+
+build/winpty.dll : $(LIBWINPTY_DLL_OBJECTS)
 	$(info Linking $@)
 	@$(MINGW_CXX) $(MINGW_LDFLAGS) -shared -o $@ $^ -Wl,--out-implib,build/winpty.lib
 
--include $(LIBWINPTY_OBJECTS:.o=.d)
+build/libwinpty.a : $(LIBWINPTY_STATIC_OBJECTS)
+	$(info Archiving $@)
+	@$(MINGW_AR) rcs $@ $^
+
+-include $(LIBWINPTY_DLL_OBJECTS:.o=.d) $(LIBWINPTY_STATIC_OBJECTS:.o=.d)
