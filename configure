@@ -47,6 +47,7 @@ function findTool {
 IS_CYGWIN=0
 IS_MSYS1=0
 IS_MSYS2=0
+BUILD_UNIX_ADAPTER=1
 
 # Link parts of the Cygwin binary statically to aid in redistribution?  The
 # binary still links dynamically against the main DLL.  The MinGW binaries are
@@ -55,7 +56,8 @@ IS_MSYS2=0
 # Windows C++ ABI.
 UNIX_LDFLAGS_STATIC='-static -static-libgcc -static-libstdc++'
 
-# Detect the environment -- Cygwin or MSYS.
+# Detect the environment.  Cygwin/MSYS builds both the MinGW components and the
+# Unix adapter; other hosts only build the MinGW components.
 case $(uname -s) in
     CYGWIN*)
         echo 'uname -s identifies a Cygwin environment.'
@@ -129,20 +131,41 @@ case $(uname -s) in
         esac
         ;;
     *)
-        echo 'Error: uname -s did not match either CYGWIN* or MINGW*.'
-        exit 1
+        echo 'uname -s does not identify Cygwin or MSYS; configuring a MinGW-only build.'
+        BUILD_UNIX_ADAPTER=0
+        if test -n "$MINGW_CXX"; then
+            echo "MINGW_CXX is set; using the caller-provided MinGW compiler preference: $MINGW_CXX"
+        else
+            case $(uname -m) in
+                i?86)
+                    echo 'uname -m identifies an i686-class environment.'
+                    MINGW_CXX='i686-w64-mingw32-g++ i686-w64-mingw32-g++.exe'
+                    ;;
+                x86_64|amd64)
+                    echo 'uname -m identifies an x86_64-class environment.'
+                    MINGW_CXX='x86_64-w64-mingw32-g++ x86_64-w64-mingw32-g++.exe'
+                    ;;
+                *)
+                    echo 'uname -m does not identify either i686 or x86_64; searching for a MinGW cross-compiler.'
+                    MINGW_CXX='x86_64-w64-mingw32-g++ x86_64-w64-mingw32-g++.exe i686-w64-mingw32-g++ i686-w64-mingw32-g++.exe'
+                    ;;
+            esac
+        fi
         ;;
 esac
 
 # Search the PATH and pick the first match.
-findTool "Cygwin/MSYS G++ compiler" "$UNIX_CXX"
-UNIX_CXX=$FINDTOOL_OUT
+if test $BUILD_UNIX_ADAPTER = 1; then
+    findTool "Cygwin/MSYS G++ compiler" "$UNIX_CXX"
+    UNIX_CXX=$FINDTOOL_OUT
+fi
 findTool "MinGW G++ compiler" "$MINGW_CXX"
 MINGW_CXX=$FINDTOOL_OUT
 
 # Write config files.
 echo Writing config.mk
-echo UNIX_CXX=$UNIX_CXX > config.mk
+echo BUILD_UNIX_ADAPTER=$BUILD_UNIX_ADAPTER > config.mk
+echo UNIX_CXX=$UNIX_CXX >> config.mk
 echo UNIX_LDFLAGS_STATIC=$UNIX_LDFLAGS_STATIC >> config.mk
 echo MINGW_CXX=$MINGW_CXX >> config.mk
 

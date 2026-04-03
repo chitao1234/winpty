@@ -32,6 +32,7 @@ PREFIX := /usr/local
 UNIX_ADAPTER_EXE := winpty.exe
 MINGW_ENABLE_CXX11_FLAG := -std=c++11
 USE_PCH := 1
+BUILD_UNIX_ADAPTER := 1
 
 COMMON_CXXFLAGS :=
 UNIX_CXXFLAGS :=
@@ -99,7 +100,13 @@ build/$1/%.o : src/%.cc $$(PCH_DEP) | $$$$(@D)/.mkdir
 	@$$(MINGW_CXX) $$(MINGW_CXXFLAGS) $2 -I src/include -c -o $$@ $$<
 endef
 
-include src/subdir.mk
+include src/agent/subdir.mk
+include src/debugserver/subdir.mk
+include src/libwinpty/subdir.mk
+include src/tests/subdir.mk
+ifeq "$(BUILD_UNIX_ADAPTER)" "1"
+include src/unix-adapter/subdir.mk
+endif
 
 .PHONY : all
 all : $(ALL_TARGETS)
@@ -110,7 +117,9 @@ tests : $(TEST_PROGRAMS)
 .PHONY : install-bin
 install-bin : all
 	mkdir -p $(PREFIX)/bin
+ifeq "$(BUILD_UNIX_ADAPTER)" "1"
 	install -m 755 -p -s build/$(UNIX_ADAPTER_EXE) $(PREFIX)/bin
+endif
 	install -m 755 -p -s build/winpty.dll $(PREFIX)/bin
 	install -m 755 -p -s build/winpty-agent.exe $(PREFIX)/bin
 
