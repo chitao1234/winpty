@@ -20,7 +20,7 @@ server.
 
 ## Supported Windows versions
 
-winpty runs on Windows XP through Windows 10, including server versions.  It
+winpty runs on Windows 2000 through Windows 10, including server versions.  It
 can be compiled into either 32-bit or 64-bit binaries.
 
 ## Cygwin/MSYS adapter (`winpty.exe`)
