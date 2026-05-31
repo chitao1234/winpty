@@ -52,7 +52,7 @@ COMMON_CXXFLAGS += \
 	-MMD -Wall \
 	-DUNICODE \
 	-D_UNICODE \
-	-D_WIN32_WINNT=0x0501 \
+	-D_WIN32_WINNT=0x0500 \
 	-Ibuild/gen
 
 UNIX_CXXFLAGS += \

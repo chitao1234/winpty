@@ -16,7 +16,7 @@
         'defines' : [
             'UNICODE',
             '_UNICODE',
-            '_WIN32_WINNT=0x0501',
+            '_WIN32_WINNT=0x0500',
             'NOMINMAX',
         ],
         'include_dirs': [

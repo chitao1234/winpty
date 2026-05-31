@@ -61,6 +61,25 @@ static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType)
     return FALSE;
 }
 
+typedef DWORD WINAPI GetConsoleProcessList_t(
+    LPDWORD processList,
+    DWORD processCount);
+
+static GetConsoleProcessList_t *getConsoleProcessListProc()
+{
+    static GetConsoleProcessList_t *pGetConsoleProcessList = nullptr;
+    static bool initialized = false;
+    if (!initialized) {
+        HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
+        ASSERT(kernel32 != nullptr);
+        pGetConsoleProcessList =
+            reinterpret_cast<GetConsoleProcessList_t*>(
+                GetProcAddress(kernel32, "GetConsoleProcessList"));
+        initialized = true;
+    }
+    return pGetConsoleProcessList;
+}
+
 // We can detect the new Windows 10 console by observing the effect of the
 // Mark command.  In older consoles, Mark temporarily moves the cursor to the
 // top-left of the console window.  In the new console, the cursor isn't
@@ -434,18 +453,27 @@ void Agent::handleGetConsoleProcessListPacket(ReadBuffer &packet)
 {
     packet.assertEof();
 
+    auto pGetConsoleProcessList = getConsoleProcessListProc();
     auto processList = std::vector<DWORD>(64);
-    auto processCount = GetConsoleProcessList(&processList[0], processList.size());
+    DWORD processCount = 0;
+
+    if (pGetConsoleProcessList != nullptr) {
+        processCount = pGetConsoleProcessList(
+            &processList[0], processList.size());
+    }
 
     // The process list can change while we're trying to read it
     while (processList.size() < processCount) {
         // Multiplying by two caps the number of iterations
         const auto newSize = std::max<DWORD>(processList.size() * 2, processCount);
         processList.resize(newSize);
-        processCount = GetConsoleProcessList(&processList[0], processList.size());
+        processCount = pGetConsoleProcessList(
+            &processList[0], processList.size());
     }
 
-    if (processCount == 0) {
+    if (pGetConsoleProcessList == nullptr) {
+        trace("GetConsoleProcessList is unavailable on this OS");
+    } else if (processCount == 0) {
         trace("GetConsoleProcessList failed");
     }
 

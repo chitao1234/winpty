@@ -300,20 +300,6 @@ createPipeSecurityDescriptorOwnerFullControlEveryoneWrite() {
     return SecurityDescriptor(retValue, std::move(impl));
 }
 
-SecurityDescriptor getObjectSecurityDescriptor(HANDLE handle) {
-    PACL dacl = nullptr;
-    PSECURITY_DESCRIPTOR sd = nullptr;
-    const DWORD errCode = GetSecurityInfo(handle, SE_KERNEL_OBJECT,
-        OWNER_SECURITY_INFORMATION |
-            GROUP_SECURITY_INFORMATION |
-            DACL_SECURITY_INFORMATION,
-        nullptr, nullptr, &dacl, nullptr, &sd);
-    if (errCode != ERROR_SUCCESS) {
-        throwWindowsError(L"GetSecurityInfo failed");
-    }
-    return localItem<SecurityDescriptorTag>(sd);
-}
-
 // The (SID/SD)<->string conversion APIs are useful for testing/debugging, so
 // create convenient accessor functions for them.  They're too slow for
 // ordinary use.  The APIs exist in XP and up, but the MinGW headers only

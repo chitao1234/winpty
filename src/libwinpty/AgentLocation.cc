@@ -31,15 +31,12 @@
 #define AGENT_EXE L"winpty-agent.exe"
 
 static HMODULE getCurrentModule() {
-    HMODULE module;
-    if (!GetModuleHandleExW(
-                GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                reinterpret_cast<LPCWSTR>(getCurrentModule),
-                &module)) {
-        ASSERT(false && "GetModuleHandleEx failed");
+    MEMORY_BASIC_INFORMATION info = {};
+    if (!VirtualQuery(reinterpret_cast<LPCVOID>(getCurrentModule),
+                      &info, sizeof(info))) {
+        ASSERT(false && "VirtualQuery failed");
     }
-    return module;
+    return reinterpret_cast<HMODULE>(info.AllocationBase);
 }
 
 static std::wstring getModuleFileName(HMODULE module) {

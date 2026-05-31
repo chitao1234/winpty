@@ -83,7 +83,6 @@ Sid everyoneSid();
 
 SecurityDescriptor createPipeSecurityDescriptorOwnerFullControl();
 SecurityDescriptor createPipeSecurityDescriptorOwnerFullControlEveryoneWrite();
-SecurityDescriptor getObjectSecurityDescriptor(HANDLE handle);
 
 std::wstring sidToString(PSID sid);
 Sid stringToSid(const std::wstring &str);
