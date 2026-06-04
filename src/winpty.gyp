@@ -1,3 +1,5 @@
+# Copyright (c) 2026 Xuntao Chi
+
 {
     # The MSVC generator is the default.  Select the compiler version by
     # passing -G msvs_version=<ver> to gyp.  <ver> is a string like 2013e.
