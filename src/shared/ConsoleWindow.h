@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2016 Ryan Prichard
+// Copyright (c) 2026 Ryan Prichard
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -18,39 +18,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "WinptyAssert.h"
+#ifndef WINPTY_SHARED_CONSOLE_WINDOW_H
+#define WINPTY_SHARED_CONSOLE_WINDOW_H
 
 #include <windows.h>
-#include <stdlib.h>
 
-#include "ConsoleWindow.h"
-#include "DebugClient.h"
+HWND getConsoleWindowCompat();
 
-void assertTrace(const char *file, int line, const char *cond) {
-    trace("Assertion failed: %s, file %s, line %d",
-          cond, file, line);
-}
-
-#ifdef WINPTY_AGENT_ASSERT
-
-void agentShutdown() {
-    HWND hwnd = getConsoleWindowCompat();
-    if (hwnd != NULL) {
-        PostMessage(hwnd, WM_CLOSE, 0, 0);
-        Sleep(30000);
-        trace("Agent shutdown: WM_CLOSE did not end agent process");
-    } else {
-        trace("Agent shutdown: GetConsoleWindow() is NULL");
-    }
-    // abort() prints a message to the console, and if it is frozen, then the
-    // process would hang, so instead use exit().  (We shouldn't ever get here,
-    // though, because the WM_CLOSE message should have ended this process.)
-    exit(1);
-}
-
-void agentAssertFail(const char *file, int line, const char *cond) {
-    assertTrace(file, line, cond);
-    agentShutdown();
-}
-
-#endif
+#endif // WINPTY_SHARED_CONSOLE_WINDOW_H

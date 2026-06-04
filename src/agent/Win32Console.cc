@@ -25,6 +25,7 @@
 
 #include <string>
 
+#include "../shared/ConsoleWindow.h"
 #include "../shared/DebugClient.h"
 #include "../shared/WinptyAssert.h"
 
@@ -35,7 +36,7 @@ Win32Console::Win32Console() : m_titleWorkBuf(16)
     //      have scrolled.
     //  (2) Killing processes attached to the console, by posting a WM_CLOSE
     //      message to the console window.
-    m_hwnd = GetConsoleWindow();
+    m_hwnd = getConsoleWindowCompat();
     ASSERT(m_hwnd != nullptr);
 }
 

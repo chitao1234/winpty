@@ -91,6 +91,8 @@
                 'shared/BackgroundDesktop.cc',
                 'shared/Buffer.h',
                 'shared/Buffer.cc',
+                'shared/ConsoleWindow.h',
+                'shared/ConsoleWindow.cc',
                 'shared/DebugClient.h',
                 'shared/DebugClient.cc',
                 'shared/GenRandom.h',

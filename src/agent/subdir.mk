@@ -42,6 +42,7 @@ AGENT_OBJECTS = \
 	build/agent/agent/main.o \
 	build/agent/shared/BackgroundDesktop.o \
 	build/agent/shared/Buffer.o \
+	build/agent/shared/ConsoleWindow.o \
 	build/agent/shared/DebugClient.o \
 	build/agent/shared/GenRandom.o \
 	build/agent/shared/OwnedHandle.o \
