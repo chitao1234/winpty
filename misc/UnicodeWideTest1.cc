@@ -234,7 +234,9 @@ int main(int argc, char *argv[]) {
 
     auto cp = GetConsoleOutputCP();
     assert(cp == 932 || cp == 936 || cp == 949 || cp == 950 ||
-           cp == 1361 || cp == 54936);
+           cp == 1361 || cp == 10001 || cp == 10002 || cp == 10003 ||
+           cp == 10008 || (cp >= 20000 && cp <= 20005) ||
+           cp == 20932 || cp == 20936 || cp == 51949);
 
     runTest(test1);
     runTest(test2);

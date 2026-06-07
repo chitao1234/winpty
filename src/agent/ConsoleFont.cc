@@ -516,47 +516,39 @@ static Font selectSmallFont(int codePage, int columns, bool isNewW10) {
     const FontSize *table = nullptr;
     size_t tableSize = 0;
 
-    switch (codePage) {
-        case 932: // Japanese
-            faceName = kMSGothic;
-            fontFamily = 0x36;
-            if (isNewW10) {
-                table = k932GothicWin10;
-                tableSize = COUNT_OF(k932GothicWin10);
-            } else if (isAtLeastWindows8()) {
-                table = k932GothicWin8;
-                tableSize = COUNT_OF(k932GothicWin8);
-            } else {
-                table = k932GothicVista;
-                tableSize = COUNT_OF(k932GothicVista);
-            }
-            break;
-        case 936: // Chinese Simplified
-        case 54936: // Chinese Simplified, GB18030
-            faceName = kNSimSun;
-            fontFamily = 0x36;
-            table = k936SimSun;
-            tableSize = COUNT_OF(k936SimSun);
-            break;
-        case 949: // Korean
-        case 1361: // Korean, Johab
-            faceName = kGulimChe;
-            fontFamily = 0x36;
-            table = k949GulimChe;
-            tableSize = COUNT_OF(k949GulimChe);
-            break;
-        case 950: // Chinese Traditional
-            faceName = kMingLight;
-            fontFamily = 0x36;
-            table = k950MingLight;
-            tableSize = COUNT_OF(k950MingLight);
-            break;
-        default:
-            faceName = kLucidaConsole;
-            fontFamily = 0x36;
-            table = kLucidaFontSizes;
-            tableSize = COUNT_OF(kLucidaFontSizes);
-            break;
+    if (isJapaneseDbcsCodePage(codePage)) {
+        faceName = kMSGothic;
+        fontFamily = 0x36;
+        if (isNewW10) {
+            table = k932GothicWin10;
+            tableSize = COUNT_OF(k932GothicWin10);
+        } else if (isAtLeastWindows8()) {
+            table = k932GothicWin8;
+            tableSize = COUNT_OF(k932GothicWin8);
+        } else {
+            table = k932GothicVista;
+            tableSize = COUNT_OF(k932GothicVista);
+        }
+    } else if (isSimplifiedChineseDbcsCodePage(codePage)) {
+        faceName = kNSimSun;
+        fontFamily = 0x36;
+        table = k936SimSun;
+        tableSize = COUNT_OF(k936SimSun);
+    } else if (isKoreanDbcsCodePage(codePage)) {
+        faceName = kGulimChe;
+        fontFamily = 0x36;
+        table = k949GulimChe;
+        tableSize = COUNT_OF(k949GulimChe);
+    } else if (isTraditionalChineseDbcsCodePage(codePage)) {
+        faceName = kMingLight;
+        fontFamily = 0x36;
+        table = k950MingLight;
+        tableSize = COUNT_OF(k950MingLight);
+    } else {
+        faceName = kLucidaConsole;
+        fontFamily = 0x36;
+        table = kLucidaFontSizes;
+        tableSize = COUNT_OF(kLucidaFontSizes);
     }
 
     size_t bestIndex = static_cast<size_t>(-1);
@@ -611,7 +603,7 @@ static void setSmallFontVista(VistaFontAPI &api, HANDLE conout,
         trace("setSmallFontVista: success");
         return;
     }
-    if (isCjkCodePage(codePage)) {
+    if (isEastAsianDbcsCodePage(codePage)) {
         trace("setSmallFontVista: falling back to default codepage font instead");
         const auto fontFB = selectSmallFont(0, columns, isNewW10);
         if (setFontVista(api, conout, fontFB)) {

@@ -76,13 +76,13 @@ void largeConsoleRead(LargeConsoleReadBuffer &out,
 
     const bool useLargeReads = isAtLeastWindows8();
     /*
-     * On XP CJK raster-font consoles, ReadConsoleOutputW collapses full-width
-     * characters when reading a multi-row rectangle, shifting data from later
-     * rows into earlier rows.  Reading one row at a time keeps the rows
-     * intact.  Normalize the trailing NUL fill cells to blanks below.
+     * On old East Asian DBCS consoles, ReadConsoleOutputW collapses
+     * full-width characters when reading a multi-row rectangle, shifting data
+     * from later rows into earlier rows.  Reading one row at a time keeps the
+     * rows intact.  Normalize the trailing NUL fill cells to blanks below.
      */
     const int maxReadLines =
-        !useLargeReads && isCjkCodePage(GetConsoleOutputCP())
+        !useLargeReads && isEastAsianDbcsCodePage(GetConsoleOutputCP())
             ? 1
             : std::max(1, MAX_CONSOLE_WIDTH / readArea.width());
     if (useLargeReads) {

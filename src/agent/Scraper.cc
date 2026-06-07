@@ -402,7 +402,7 @@ WORD Scraper::attributesMask()
     const auto WINPTY_COMMON_LVB_REVERSE_VIDEO           = 0x4000u;
     const auto WINPTY_COMMON_LVB_UNDERSCORE              = 0x8000u;
 
-    const auto isCjk = isCjkCodePage(GetConsoleOutputCP());
+    const auto isCjk = isEastAsianDbcsCodePage(GetConsoleOutputCP());
 
     const DWORD outputMode = [this]{
         ASSERT(this->m_consoleBuffer != nullptr);
