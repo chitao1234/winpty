@@ -30,6 +30,7 @@
 #include "../shared/WinptyAssert.h"
 #include "../shared/winpty_snprintf.h"
 
+#include "ConsoleCodePage.h"
 #include "ConsoleFont.h"
 #include "Win32Console.h"
 #include "Win32ConsoleBuffer.h"
@@ -401,8 +402,7 @@ WORD Scraper::attributesMask()
     const auto WINPTY_COMMON_LVB_REVERSE_VIDEO           = 0x4000u;
     const auto WINPTY_COMMON_LVB_UNDERSCORE              = 0x8000u;
 
-    const auto cp = GetConsoleOutputCP();
-    const auto isCjk = (cp == 932 || cp == 936 || cp == 949 || cp == 950);
+    const auto isCjk = isCjkCodePage(GetConsoleOutputCP());
 
     const DWORD outputMode = [this]{
         ASSERT(this->m_consoleBuffer != nullptr);

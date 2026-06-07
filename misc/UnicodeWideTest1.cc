@@ -233,7 +233,8 @@ int main(int argc, char *argv[]) {
     setWindowPos(0, 0, 80, 40);
 
     auto cp = GetConsoleOutputCP();
-    assert(cp == 932 || cp == 936 || cp == 949 || cp == 950);
+    assert(cp == 932 || cp == 936 || cp == 949 || cp == 950 ||
+           cp == 1361 || cp == 54936);
 
     runTest(test1);
     runTest(test2);

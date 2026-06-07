@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include "../shared/WindowsVersion.h"
+#include "ConsoleCodePage.h"
 #include "Scraper.h"
 #include "Win32ConsoleBuffer.h"
 
@@ -73,9 +74,6 @@ void largeConsoleRead(LargeConsoleReadBuffer &out,
     out.m_rect = readArea;
     out.m_rectWidth = readArea.width();
 
-    const UINT outputCp = GetConsoleOutputCP();
-    const bool isCjk =
-        outputCp == 932 || outputCp == 936 || outputCp == 949 || outputCp == 950;
     const bool useLargeReads = isAtLeastWindows8();
     /*
      * On XP CJK raster-font consoles, ReadConsoleOutputW collapses full-width
@@ -84,7 +82,7 @@ void largeConsoleRead(LargeConsoleReadBuffer &out,
      * intact.  Normalize the trailing NUL fill cells to blanks below.
      */
     const int maxReadLines =
-        !useLargeReads && isCjk
+        !useLargeReads && isCjkCodePage(GetConsoleOutputCP())
             ? 1
             : std::max(1, MAX_CONSOLE_WIDTH / readArea.width());
     if (useLargeReads) {

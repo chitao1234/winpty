@@ -38,6 +38,8 @@
 #include "../shared/WinptyAssert.h"
 #include "../shared/winpty_snprintf.h"
 
+#include "ConsoleCodePage.h"
+
 namespace {
 
 #define COUNT_OF(x) (sizeof(x) / sizeof((x)[0]))
@@ -69,7 +71,7 @@ struct Font {
 // configurations.  It depends heavily on the code page, the font facename,
 // and (somehow) even the font size.  In the 437 code page (MS-DOS), for
 // example, no codepoints are interpreted as double-width.  When the console
-// is in an East Asian code page (932, 936, 949, or 950), then sometimes
+// is in an East Asian code page, then sometimes
 // selecting a "Western" facename like "Lucida Console" or "Consolas" doesn't
 // register, or if the font *can* be chosen, then the console doesn't handle
 // double-width correctly.  I tested the double-width handling by writing
@@ -530,12 +532,14 @@ static Font selectSmallFont(int codePage, int columns, bool isNewW10) {
             }
             break;
         case 936: // Chinese Simplified
+        case 54936: // Chinese Simplified, GB18030
             faceName = kNSimSun;
             fontFamily = 0x36;
             table = k936SimSun;
             tableSize = COUNT_OF(k936SimSun);
             break;
         case 949: // Korean
+        case 1361: // Korean, Johab
             faceName = kGulimChe;
             fontFamily = 0x36;
             table = k949GulimChe;
@@ -607,8 +611,7 @@ static void setSmallFontVista(VistaFontAPI &api, HANDLE conout,
         trace("setSmallFontVista: success");
         return;
     }
-    if (codePage == 932 || codePage == 936 ||
-            codePage == 949 || codePage == 950) {
+    if (isCjkCodePage(codePage)) {
         trace("setSmallFontVista: falling back to default codepage font instead");
         const auto fontFB = selectSmallFont(0, columns, isNewW10);
         if (setFontVista(api, conout, fontFB)) {
