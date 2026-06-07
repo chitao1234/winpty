@@ -20,11 +20,37 @@
 
 #include "LargeConsoleRead.h"
 
+#include <algorithm>
 #include <stdlib.h>
 
 #include "../shared/WindowsVersion.h"
 #include "Scraper.h"
 #include "Win32ConsoleBuffer.h"
+
+namespace {
+
+const WORD kDefaultBlankAttributes =
+    FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+
+static WORD blankAttributesForNulCell(
+        const CHAR_INFO *line,
+        int width,
+        int col)
+{
+    for (int i = col - 1; i >= 0; --i) {
+        if (line[i].Attributes != 0) {
+            return line[i].Attributes;
+        }
+    }
+    for (int i = col + 1; i < width; ++i) {
+        if (line[i].Attributes != 0) {
+            return line[i].Attributes;
+        }
+    }
+    return kDefaultBlankAttributes;
+}
+
+} // anonymous namespace
 
 LargeConsoleReadBuffer::LargeConsoleReadBuffer() :
     m_rect(0, 0, 0, 0), m_rectWidth(0)
@@ -47,11 +73,23 @@ void largeConsoleRead(LargeConsoleReadBuffer &out,
     out.m_rect = readArea;
     out.m_rectWidth = readArea.width();
 
-    static const bool useLargeReads = isAtLeastWindows8();
+    const UINT outputCp = GetConsoleOutputCP();
+    const bool isCjk =
+        outputCp == 932 || outputCp == 936 || outputCp == 949 || outputCp == 950;
+    const bool useLargeReads = isAtLeastWindows8();
+    /*
+     * On XP CJK raster-font consoles, ReadConsoleOutputW collapses full-width
+     * characters when reading a multi-row rectangle, shifting data from later
+     * rows into earlier rows.  Reading one row at a time keeps the rows
+     * intact.  Normalize the trailing NUL fill cells to blanks below.
+     */
+    const int maxReadLines =
+        !useLargeReads && isCjk
+            ? 1
+            : std::max(1, MAX_CONSOLE_WIDTH / readArea.width());
     if (useLargeReads) {
         buffer.read(readArea, out.m_data.data());
     } else {
-        const int maxReadLines = std::max(1, MAX_CONSOLE_WIDTH / readArea.width());
         int curLine = readArea.Top;
         while (curLine <= readArea.Bottom) {
             const SmallRect subReadArea(
@@ -61,6 +99,19 @@ void largeConsoleRead(LargeConsoleReadBuffer &out,
                 std::min(maxReadLines, readArea.Bottom + 1 - curLine));
             buffer.read(subReadArea, out.lineDataMut(curLine));
             curLine = subReadArea.Bottom + 1;
+        }
+    }
+    for (int line = readArea.Top; line <= readArea.Bottom; ++line) {
+        CHAR_INFO *const lineData = out.lineDataMut(line);
+        for (int col = 0; col < readArea.width(); ++col) {
+            CHAR_INFO &cell = lineData[col];
+            if (cell.Char.UnicodeChar == L'\0') {
+                cell.Char.UnicodeChar = L' ';
+                if (cell.Attributes == 0) {
+                    cell.Attributes =
+                        blankAttributesForNulCell(lineData, readArea.width(), col);
+                }
+            }
         }
     }
     if (attributesMask != static_cast<WORD>(~0)) {

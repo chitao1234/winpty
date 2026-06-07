@@ -23,6 +23,8 @@ build/%.exe : src/tests/%.cc build/winpty.dll
 	@$(MINGW_CXX) $(MINGW_CXXFLAGS) $(MINGW_LDFLAGS) -o $@ $^
 
 TEST_PROGRAMS = \
-        build/trivial_test.exe
+        build/trivial_test.exe \
+        build/cjk_output_test.exe \
+        build/dir_layout_test.exe
 
 -include $(TEST_PROGRAMS:.exe=.d)

@@ -279,7 +279,10 @@ static inline void scanUnicodeScalarValue(
     const int w1 = isFullWidthCharacter(data, width) ? 2 : 1;
     const wchar_t c1 = data[0].Char.UnicodeChar;
 
-    if ((c1 & 0xF800) == 0xD800) {
+    if (c1 == L'\0') {
+        outCellCount = w1;
+        outCharValue = ' ';
+    } else if ((c1 & 0xF800) == 0xD800) {
         // The first cell is either a leading or trailing surrogate pair.
         if ((c1 & 0xFC00) != 0xD800 ||
                 width <= w1 ||
