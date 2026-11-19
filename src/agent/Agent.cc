@@ -245,7 +245,9 @@ Agent::Agent(LPCWSTR controlPipeName,
 Agent::~Agent()
 {
     trace("Agent::~Agent entered");
-    agentShutdown();
+    // Releasing a terminal is not permission to terminate its surviving
+    // clients. Fatal/assert paths still use agentShutdown explicitly.
+    FreeConsole();
     if (m_childProcess != NULL) {
         CloseHandle(m_childProcess);
     }
@@ -355,6 +357,9 @@ void Agent::handlePacket(ReadBuffer &packet)
         break;
     case AgentMsg::GetConsoleProcessList:
         handleGetConsoleProcessListPacket(packet);
+        break;
+    case AgentMsg::FinishOutput:
+        handleFinishOutputPacket(packet);
         break;
     default:
         trace("Unrecognized message, id:%d", type);
@@ -486,6 +491,20 @@ void Agent::handleGetConsoleProcessListPacket(ReadBuffer &packet)
     writePacket(reply);
 }
 
+void Agent::handleFinishOutputPacket(ReadBuffer &packet)
+{
+    packet.assertEof();
+    if (!m_closingOutputPipes) {
+        // The caller owns the post-exit deadline. Scrape once after that
+        // deadline, then let existing pipe completion drain the accepted data.
+        syncConsoleTitle();
+        scrapeBuffers();
+        m_closingOutputPipes = true;
+    }
+    auto reply = newPacket();
+    writePacket(reply);
+}
+
 void Agent::pollConinPipe()
 {
     const std::string newData = m_coninPipe->readAllToString();
@@ -559,7 +578,8 @@ void Agent::autoClosePipesForShutdown()
         }
         if (m_exitAfterShutdown &&
                 m_conoutPipe->isClosed() &&
-                (m_conerrPipe == nullptr || m_conerrPipe->isClosed())) {
+                (m_conerrPipe == nullptr || m_conerrPipe->isClosed()) &&
+                m_controlPipe->bytesToSend() == 0) {
             trace("Agent exiting (exit-after-shutdown)");
             shutdown();
         }

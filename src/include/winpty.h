@@ -227,9 +227,17 @@ WINPTY_API int
 winpty_get_console_process_list(winpty_t *wp, int *processList, const int processCount,
                                 winpty_error_ptr_t *err /*OPTIONAL*/);
 
+/* Request a final console scrape and drain the accepted output before closing
+ * CONOUT/CONERR. The caller must continue reading these pipes until EOF.
+ * With EXIT_AFTER_SHUTDOWN the agent then detaches and exits normally.
+ * Omit AUTO_SHUTDOWN at spawn when the caller owns the output-drain deadline. */
+WINPTY_API BOOL
+winpty_finish_output(winpty_t *wp, winpty_error_ptr_t *err /*OPTIONAL*/);
+
 /* Frees the winpty_t object and the OS resources contained in it.  This
- * call breaks the connection with the agent, which should then close its
- * console, terminating the processes attached to it.
+ * call breaks the connection with the agent, which detaches from its console
+ * and exits without explicitly terminating attached processes. Use
+ * winpty_finish_output and read through EOF first to retain final output.
  *
  * This function must not be called if any other threads are using the
  * winpty_t object.  Undefined behavior results. */

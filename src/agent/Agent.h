@@ -60,6 +60,7 @@ private:
     void handleStartProcessPacket(ReadBuffer &packet);
     void handleSetSizePacket(ReadBuffer &packet);
     void handleGetConsoleProcessListPacket(ReadBuffer &packet);
+    void handleFinishOutputPacket(ReadBuffer &packet);
     void pollConinPipe();
 
 protected:
